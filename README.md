@@ -19,7 +19,7 @@ docker-compose.yml
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ```bash
 # From project root

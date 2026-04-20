@@ -1,0 +1,69 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    environment:
+      GATEWAY_HOST: 0.0.0.0
+      GATEWAY_PORT: 8080
+      INITIAL_LEADER: http://replica1:5000
+      FRONTEND_DIR: /app/frontend
+    volumes:
+      - ./gateway:/app/gateway
+      - ./shared:/app/shared:ro
+      - ./frontend:/app/frontend:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      - replica1
+      - replica2
+      - replica3
+
+  replica1:
+    build:
+      context: .
+      dockerfile: replica/Dockerfile
+    environment:
+      REPLICA_ID: replica1
+      RPC_HOST: 0.0.0.0
+      RPC_PORT: 5000
+      PEERS: http://replica2:5001 http://replica3:5002
+    volumes:
+      - ./replica1:/app/replica
+      - ./shared:/app/shared
+    ports:
+      - "5000:5000"
+
+  replica2:
+    build:
+      context: .
+      dockerfile: replica/Dockerfile
+    environment:
+      REPLICA_ID: replica2
+      RPC_HOST: 0.0.0.0
+      RPC_PORT: 5001
+      PEERS: http://replica1:5000 http://replica3:5002
+    volumes:
+      - ./replica2:/app/replica
+      - ./shared:/app/shared
+    ports:
+      - "5001:5001"
+
+  replica3:
+    build:
+      context: .
+      dockerfile: replica/Dockerfile
+    environment:
+      REPLICA_ID: replica3
+      RPC_HOST: 0.0.0.0
+      RPC_PORT: 5002
+      PEERS: http://replica1:5000 http://replica2:5001
+    volumes:
+      - ./replica3:/app/replica
+      - ./shared:/app/shared
+    ports:
+      - "5002:5002"
+
+networks:
+  default:
+    name: raftnet
